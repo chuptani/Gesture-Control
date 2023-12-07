@@ -23,6 +23,7 @@ while True:
 
     gesture = detector.findGesture(img)
     img = detector.findHands(img)
+    # if gesture == 
     print(gesture)
 
     cv.putText(img, str(int(fps)), (10, 60), 
