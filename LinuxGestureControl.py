@@ -13,6 +13,7 @@ cap.set(4, hCam)
 pTime = 0
 
 detector = htm.handDetector(maxHands=1, detectionCon=0.7)
+primer = False
 
 while True:
     success, img = cap.read()
@@ -23,7 +24,13 @@ while True:
 
     gesture = detector.findGesture(img)
     img = detector.findHands(img)
-    # if gesture == 
+    if gesture == "Closed_Fist":
+        primer = True
+    if primer:
+        if gesture == "Open_Palm":
+            pag.hotkey('ctrl', 'alt', 'up')
+            primer = False
+
     print(gesture)
 
     cv.putText(img, str(int(fps)), (10, 60), 
