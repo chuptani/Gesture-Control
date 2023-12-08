@@ -51,8 +51,8 @@ class handDetector():
                 h, w, c = img.shape 
                 cx, cy = int(lm.x*w), int(lm.y*h) 
                 lmList.append([id, cx, cy]) 
-                if draw: 
-                    cv.circle(img, (cx, cy), 15, (255, 0, 255), cv.FILLED) 
+                # if draw: 
+                #     cv.circle(img, (cx, cy), 15, (255, 0, 255), cv.FILLED) 
 
         return lmList   
 
