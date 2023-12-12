@@ -12,7 +12,7 @@ cap.set(3, wCam)
 cap.set(4, hCam)
 pTime = 0
 
-detector = htm.handDetector(maxHands=1, detectionCon=0.7)
+# detector = htm.handDetector(maxHands=1, detectionCon=0.7)
 primer = False
 workOpen = False
 ready = False
@@ -28,7 +28,7 @@ while True:
     fps = 1/(cTime-pTime)
     pTime = cTime
 
-    gesture = detector.findGesture(img)
+    # gesture = detector.findGesture(img)
     img = detector.findHands(img)
     lmList = detector.findPosition(img)
     if len(lmList) != 0:
