@@ -18,7 +18,7 @@ detector = htm.handDetector(maxHands=1, detectionCon=0.7)
 # ready = False
 # R, L, U, D = False, False, False, False
 # def reset():
-#     R, L, U, D = False, False, False, False
+# R, L, U, D = False, False, False, False
 
 
 while True:
@@ -28,7 +28,8 @@ while True:
     fps = 1/(cTime-pTime)
     pTime = cTime
 
-    # gesture = detector.findGesture(img)
+    gesture = detector.findGesture(img)
+    print(gesture)
     img = detector.findHands(img)
 
     cv.putText(img, str(int(fps)), (10, 60), 
@@ -46,7 +47,7 @@ while True:
     #     print(mf)        
     # else:
     #     # R, L, D, U = False, False, False, False
-    # #     primer = False
+    #     primer = False
     #     continue
 
 
