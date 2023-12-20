@@ -97,3 +97,5 @@ while True:
             pag.hotkey("ctrl", "alt", "up")
             primer = False
             workOpen = True
+
+    # # print(gesture)
