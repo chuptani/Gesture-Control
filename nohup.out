@@ -1,0 +1,77 @@
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1705991271.116852   63230 task_runner.cc:85] GPU suport is not available: INTERNAL: ; RET_CHECK failure (mediapipe/gpu/gl_context_egl.cc:84) egl_initializedUnable to initialize EGL
+W0000 00:00:1705991271.117359   63230 gesture_recognizer_graph.cc:129] Hand Gesture Recognizer contains CPU only ops. Sets HandGestureRecognizerGraph acceleration to Xnnpack.
+I0000 00:00:1705991271.118767   63230 hand_gesture_recognizer_graph.cc:250] Custom gesture classifier is not defined.
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open crocus: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/crocus_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open zink: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/zink_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
+libEGL warning: MESA-LOADER: failed to open swrast: /home/chuptani/.conda/envs/compvision/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/lib/dri/swrast_dri.so) (search paths /usr/lib/dri, suffix _dri)
+
