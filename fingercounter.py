@@ -7,13 +7,13 @@ import HandTrackingModule as htm
 
 wcam, hcam = 1280, 720
 
-cap = cv.VideoCapture(2)
+cap = cv.VideoCapture(0)
 cap.set(3, wcam)
 cap.set(4, hcam)
 
 pTime = 0
 
-folderPath = "pics"
+folderPath = "images/counting"
 # myList = os.listdir(folderPath)
 myList = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg"]
 overlayList = []
@@ -26,10 +26,11 @@ for imPath in myList:
     overlayList.append(image)
 
 detector = htm.handDetector(maxHands=1, detectionCon=0.75)
+cvFpsCalc = htm.CvFpsCalc(buffer_len=10)
 
 while True:
     success, img = cap.read()
-    img = detector.findHands(img)
+    img = detector.findHands(img, draw=False)
     lmList = detector.findPosition(img, draw=False)
 
     if len(lmList) != 0:
@@ -50,14 +51,16 @@ while True:
 
         img[0:720, 0:512] = overlayList[count - 1]
 
-    cTime = time.time()
-    fps = 1 / (cTime - pTime)
-    pTime = cTime
+    fps = cvFpsCalc.get()
 
     cv.putText(
         img, str(int(fps)), (1180, 700), cv.FONT_HERSHEY_COMPLEX, 2, (214, 11, 299), 3
     )
 
     cv.imshow("Img", img)
-    if cv.waitKey(1) & 0xFF == ord("q"):
+    key = cv.waitKey(1)
+    if key == 27:  # ESC
         break
+
+    # if cv.waitKey(1) & 0xFF == ord("q"):
+    #     break

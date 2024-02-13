@@ -1,11 +1,10 @@
-import cv2 as cv
-import mediapipe as mp
 import time
+import cv2 as cv
+from collections import deque
 
+import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-
-# import numpy as np
 
 
 class handDetector:
@@ -18,7 +17,7 @@ class handDetector:
         self.modelComplexity = modelComplexity
         self.trackCon = trackCon
 
-        self.mpHands = mp.solutions.hands
+        self.mpHands = mp.solutions.hands #type: ignore
         self.hands = self.mpHands.Hands(
             self.mode,
             self.maxHands,
@@ -26,16 +25,17 @@ class handDetector:
             self.detectionCon,
             self.trackCon,
         )
-        self.mpDraw = mp.solutions.drawing_utils
+        self.mpDraw = mp.solutions.drawing_utils #type: ignore
 
         base_options = python.BaseOptions(model_asset_path="./gesture_recognizer.task")
         options = vision.GestureRecognizerOptions(base_options=base_options)
         self.recognizer = vision.GestureRecognizer.create_from_options(options)
 
+
     def findHands(self, img, draw=True):
         imgRGB = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         self.results = self.hands.process(imgRGB)
-        # print(results.multi_hand_landmarks)
+        print(self.results.multi_hand_landmarks)
         if self.results.multi_hand_landmarks:
             for handLms in self.results.multi_hand_landmarks:
                 if draw:
@@ -51,11 +51,11 @@ class handDetector:
         if self.results.multi_hand_landmarks:
             myHand = self.results.multi_hand_landmarks[handNo]
             for id, lm in enumerate(myHand.landmark):
-                h, w, c = img.shape
-                cx, cy = int(lm.x * w), int(lm.y * h)
+                height, width, _ = img.shape
+                cx, cy = int(lm.x * width), int(lm.y * height)
                 lmList.append([id, cx, cy])
-                # if draw:
-                #     cv.circle(img, (cx, cy), 15, (255, 0, 255), cv.FILLED)
+                if draw:
+                    cv.circle(img, (cx, cy), 15, (255, 0, 255), cv.FILLED)
 
         return lmList
 
@@ -70,31 +70,58 @@ class handDetector:
         return gesture
 
 
+class CvFpsCalc(object):
+    def __init__(self, buffer_len=1):
+        self._start_tick = cv.getTickCount()
+        self._freq = 1000.0 / cv.getTickFrequency()
+        self._difftimes = deque(maxlen=buffer_len)
+
+    def get(self):
+        current_tick = cv.getTickCount()
+        different_time = (current_tick - self._start_tick) * self._freq
+        self._start_tick = current_tick
+
+        self._difftimes.append(different_time)
+
+        fps = 1000.0 / (sum(self._difftimes) / len(self._difftimes))
+        fps_rounded = round(fps, 2)
+
+        return fps_rounded
+
+
 def main():
-    pTime = 0
-    cTime = 0
+
+
     cap = cv.VideoCapture(0)
+
     detector = handDetector()
+    cvFpsCalc = CvFpsCalc(buffer_len=10)
+
     while True:
-        success, img = cap.read()
-        gesture = detector.findGesture(img)
+
+        _, image = cap.read()
+        image = cv.flip(image, 1)
+
+        gesture = detector.findGesture(image)
         print(gesture)
-        img = detector.findHands(img)
+        
+        image = detector.findHands(image)
 
-        # lmList = detector.findPosition(img, draw=False)
-        # if len(lmList) != 0:
-        #     print(lmList[4])
+        lmList = detector.findPosition(image, draw=False)
+        if len(lmList) != 0:
+            print(lmList)
 
-        cTime = time.time()
-        fps = 1 / (cTime - pTime)
-        pTime = cTime
+        fps = cvFpsCalc.get()
 
         cv.putText(
-            img, str(int(fps)), (5, 30), cv.FONT_HERSHEY_COMPLEX, 1, (255, 0, 255), 2
+            image, str(int(fps)), (5, 30), cv.FONT_HERSHEY_COMPLEX, 1, (255, 0, 255), 2
         )
 
-        cv.imshow("Image", img)
-        cv.waitKey(1)
+        cv.imshow("Image", image)
+
+        key = cv.waitKey(1)
+        if key == 27:  # ESC
+            break
 
 
 if __name__ == "__main__":
