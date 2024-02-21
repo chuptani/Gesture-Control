@@ -19,80 +19,34 @@ cvFpsCalc = htm.CvFpsCalc(buffer_len=10)
 
 def getCount(lmList):
     fingers = []
-    indexKnuckle = lmList[5]
     pinkyKnuckle = lmList[17]
     thumbTip = lmList[4]
     thumbJoint = lmList[3]
     wrist = lmList[0]
-    x = 1
-    y = 2
 
-    # def thumbCount():
-    # x1, y1 = pinkyKnuckle[1:]
-    # x2, y2 = indexKnuckle[1:]
-    # x3, y3 = thumbTip[1:]
-    #
-    # if math.sqrt((x2 - x1)**2 + (y2 - y1)**2) < math.sqrt((x3 - x1)**2 + (y3 - y1)**2):
-    #     fingers.append(1)
-    # else:
-    #     fingers.append(0)
+    # count thumb
+    x1, y1 = pinkyKnuckle[1:]
+    x2, y2 = thumbJoint[1:]
+    x3, y3 = thumbTip[1:]
+    if math.sqrt((x3 - x1)**2 + (y3 - y1)**2) > math.sqrt((x2 - x1)**2 + (y2 - y1)**2):
+        fingers.append(1)
+    else:
+        fingers.append(0)
 
-    def thumbVertical():
-        if indexKnuckle[x] < pinkyKnuckle[x]:
-            if thumbTip[x] < thumbJoint[x]:
-                fingers.append(1)
-            else:
-                fingers.append(0)
+    # count rest 4 fingers
+    for tip in tipIds:
+        a1, b1 = wrist[1:]
+        a2, b2 = lmList[tip-2][1:]
+        a3, b3 = lmList[tip][1:]
+        if math.sqrt((a3 - a1)**2 + (b3 - b1)**2) > math.sqrt((a2 - a1)**2 + (b2 - b1)**2):
+            fingers.append(1)
         else:
-            if thumbTip[x] > thumbJoint[x]:
-                fingers.append(1)
-            else:
-                fingers.append(0)
+            fingers.append(0)
 
-    def thumbHorizontal():
-        if indexKnuckle[y] < pinkyKnuckle[y]:
-            if thumbTip[y] < thumbJoint[y]:
-                fingers.append(1)
-            else:
-                fingers.append(0)
-        else:
-            if thumbTip[y] > thumbJoint[y]:
-                fingers.append(1)
-            else:
-                fingers.append(0)
-
-    if indexKnuckle[y] < wrist[y] and pinkyKnuckle[y] < wrist[y]:
-        thumbVertical()
-        for id in tipIds:
-            if lmList[id][y] < lmList[id - 2][y]:
-                fingers.append(1)
-            else:
-                fingers.append(0)
-    elif indexKnuckle[y] > wrist[y] and pinkyKnuckle[y] > wrist[y]:
-        thumbVertical()
-        for id in tipIds:
-            if lmList[id][y] > lmList[id - 2][y]:
-                fingers.append(1)
-            else:
-                fingers.append(0)
-    elif indexKnuckle[x] < wrist[x] and pinkyKnuckle[x] < wrist[x]:
-        thumbHorizontal()
-        for id in tipIds:
-            if lmList[id][x] < lmList[id - 2][x]:
-                fingers.append(1)
-            else:
-                fingers.append(0)
-    elif indexKnuckle[x] > wrist[x] and pinkyKnuckle[x] > wrist[x]:
-        thumbHorizontal()
-        for id in tipIds:
-            if lmList[id][x] > lmList[id - 2][x]:
-                fingers.append(1)
-            else:
-                fingers.append(0)
-
-    return fingers.count(1)
+    return fingers
 
 while True:
+    fingers = []
     count = 0
     success, image = cap.read()
     if not success :
@@ -110,11 +64,14 @@ while True:
 
     if len(lmList) != 0:
         for index, _  in enumerate(handedness):
-            count+=getCount(lmList[index])
+            fingers.append(getCount(lmList[index]))
+            count+=fingers[index].count(1)
 
+    # draw count
     cv.putText(image, f"Count: {count}", (10, 55), cv.FONT_HERSHEY_COMPLEX, 2, (0, 0, 0), 7)
     cv.putText(image, f"Count: {count}", (10, 55), cv.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
 
+    # draw fps
     fps = cvFpsCalc.get()
     cv.putText(image, f"fps: {int(fps):02}", (835, 525), cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
     cv.putText(image, f"fps: {int(fps):02}", (835, 525), cv.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 1)
