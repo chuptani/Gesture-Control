@@ -1,4 +1,4 @@
-import time
+import copy
 import cv2 as cv
 from collections import deque
 
@@ -9,8 +9,14 @@ from mediapipe.tasks.python import vision
 
 class handDetector:
     def __init__(
-        self, mode=False, maxHands=2, modelComplexity=1, detectionCon=0.5, trackCon=0.5
+        self,
+        mode=False,
+        maxHands=2,
+        modelComplexity=1,
+        detectionCon=0.5,
+        trackCon=0.5
     ):
+
         self.mode = mode
         self.maxHands = maxHands
         self.detectionCon = detectionCon
@@ -32,34 +38,44 @@ class handDetector:
         self.recognizer = vision.GestureRecognizer.create_from_options(options)
 
 
-    def findHands(self, img, draw=True):
-        imgRGB = cv.cvtColor(img, cv.COLOR_BGR2RGB)
-        self.results = self.hands.process(imgRGB)
-        print(self.results.multi_hand_landmarks)
+    def findHands(self, image):
+        process_image = cv.cvtColor(image, cv.COLOR_BGR2RGB) # Convert to RGB
+        image.flags.writeable = False
+        self.results = self.hands.process(process_image)
+        image.flags.writeable = True
+
+
+    def drawHands(self, image):
         if self.results.multi_hand_landmarks:
             for handLms in self.results.multi_hand_landmarks:
-                if draw:
-                    self.mpDraw.draw_landmarks(
-                        img, handLms, self.mpHands.HAND_CONNECTIONS
-                    )
+                self.mpDraw.draw_landmarks(image, handLms, self.mpHands.HAND_CONNECTIONS)
 
-        return img
+        return image
 
-    def findPosition(self, img, handNo=0, draw=True):
+
+    def getHandedness(self):
+        handedness = []
+        if self.results.multi_handedness:
+            for hand in self.results.multi_handedness:
+                handedness.append(hand.classification[0].label)
+
+        return handedness
+
+
+    def getlmList(self, image):
         lmList = []
-
         if self.results.multi_hand_landmarks:
-            myHand = self.results.multi_hand_landmarks[handNo]
-            for id, lm in enumerate(myHand.landmark):
-                height, width, _ = img.shape
-                cx, cy = int(lm.x * width), int(lm.y * height)
-                lmList.append([id, cx, cy])
-                if draw:
-                    cv.circle(img, (cx, cy), 15, (255, 0, 255), cv.FILLED)
+            for hand in self.results.multi_hand_landmarks:
+                landmarkList = []
+                for id, lm in enumerate(hand.landmark):
+                    height, width, _ = image.shape
+                    lmx, lmy = int(lm.x * width), int(lm.y * height)
+                    landmarkList.append([id, lmx, lmy])
+                lmList.append(landmarkList)
 
         return lmList
 
-    def findGesture(self, img):
+    def getGesture(self, img):
         gesture = "none"
         imgRGB = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         image = mp.Image(image_format=mp.ImageFormat.SRGB, data=imgRGB)
@@ -90,35 +106,30 @@ class CvFpsCalc(object):
 
 
 def main():
-
-
     cap = cv.VideoCapture(0)
-
+    cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
     detector = handDetector()
     cvFpsCalc = CvFpsCalc(buffer_len=10)
 
     while True:
-
         _, image = cap.read()
         image = cv.flip(image, 1)
+        debug_image = copy.deepcopy(image)
 
-        gesture = detector.findGesture(image)
-        print(gesture)
-        
-        image = detector.findHands(image)
+        detector.findHands(debug_image)
+        detector.drawHands(image)
+        lmList = detector.getlmList(debug_image)
+        gesture = detector.getGesture(debug_image)
 
-        lmList = detector.findPosition(image, draw=False)
         if len(lmList) != 0:
-            print(lmList)
+            for lms in lmList:
+                print(lmList[lms])
+
+        print(gesture)
 
         fps = cvFpsCalc.get()
-
-        cv.putText(
-            image, str(int(fps)), (5, 30), cv.FONT_HERSHEY_COMPLEX, 1, (255, 0, 255), 2
-        )
-
+        cv.putText(image, str(int(fps)), (5, 30), cv.FONT_HERSHEY_COMPLEX, 1, (255, 0, 255), 2)
         cv.imshow("Image", image)
-
         key = cv.waitKey(1)
         if key == 27:  # ESC
             break
