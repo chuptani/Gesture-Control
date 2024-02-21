@@ -52,6 +52,7 @@ number = 0
 code = []
 ready = True
 zeroCount = 0
+warningGiven = False
 
 while True:
     fingers = []
@@ -65,35 +66,45 @@ while True:
     debug_image = copy.deepcopy(image) # Unaltered copy of image
 
     detector.findHands(debug_image)
-    detector.drawHands(image)
+    # detector.drawHands(image)
     lmList = detector.getlmList(debug_image)
     handedness = detector.getHandedness()
 
 
     if len(lmList) != 0:
+        if warningGiven == True:
+            print("\033[38;5;34mHand detected\033[0m")
+            warningGiven = False
         for index, _  in enumerate(handedness):
             fingers.append(getCount(lmList[index]))
             count+=fingers[index].count(1)
+    elif warningGiven == False:
+        print("\033[38;5;160mWARNING: No hand detected\033[0m")
+        warningGiven = True
 
     countHistory.append(count)
 
     counter = Counter(countHistory)
     number = counter.most_common(1)[0][0]
 
-    if zeroCount == 15 and len(code) != 0:
-        print("\033[38;5;34mRESET\033[0m")
+
+    if warningGiven == True:
+        code=[]
+    elif zeroCount == 15 and len(code) != 0:
         zeroCount+=1
         code = []
+        print("\033[38;5;34mRESET\033[0m")
     elif zeroCount <= 15 and number == 0:
         zeroCount+=1
         ready = True
     elif len(code) == 3:
         # run(code) create function to excecute code
-        print(code)
         code = []
+        print("\033[38;5;34mRESET\033[0m")
     elif ready and number != 0:
         zeroCount = 0
         code.append(number)
+        print(code)
         ready = False
 
     # Draw count
