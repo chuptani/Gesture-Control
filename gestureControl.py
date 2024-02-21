@@ -83,7 +83,6 @@ while True:
         warningGiven = True
 
     countHistory.append(count)
-
     counter = Counter(countHistory)
     number = counter.most_common(1)[0][0]
 
