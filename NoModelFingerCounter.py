@@ -57,7 +57,7 @@ while True:
     debug_image = copy.deepcopy(image) # Unaltered copy of image
 
     detector.findHands(debug_image)
-    # detector.drawHands(image)
+    detector.drawHands(image)
     lmList = detector.getlmList(debug_image)
     handedness = detector.getHandedness()
 

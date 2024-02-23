@@ -1,23 +1,37 @@
+import csv
 import math
 import copy
+import argparse
+import subprocess
+
 import cv2 as cv
 import HandTrackingModule as htm
 
 from collections import deque, Counter
+from model import PointHistoryClassifier
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--device", type=int, default=0)
+parser.add_argument("--train", action="store_true")
+args = parser.parse_args()
 
 wcam, hcam = 960, 540
+tipIds = [8, 12, 16, 20]
+mode = 0
 
-cap = cv.VideoCapture(0)
+cap = cv.VideoCapture(args.device)
 cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
 cap.set(3, wcam)
 cap.set(4, hcam)
 
-tipIds = [8, 12, 16, 20]
-count = 0
-webcam = True
-
-detector = htm.handDetector(maxHands=2, detectionCon=0.7)
+detector = htm.handDetector(maxHands=1, detectionCon=0.7)
 cvFpsCalc = htm.CvFpsCalc(buffer_len=10)
+
+pointHistoryClassifier = PointHistoryClassifier()
+
+with open("model/point_history_classifier/point_history_classifier_label.csv",encoding="utf-8-sig") as f:
+    point_history_classifier_labels = csv.reader(f)
+    point_history_classifier_labels = [row[0] for row in point_history_classifier_labels]
 
 def getCount(lmList):
     fingers = []
@@ -27,6 +41,7 @@ def getCount(lmList):
     wrist = lmList[0]
 
     # Count thumb
+    # TODO: fix thumb outside fist counting problem
     x1, y1 = pinkyKnuckle[1:]
     x2, y2 = thumbJoint[1:]
     x3, y3 = thumbTip[1:]
@@ -47,12 +62,58 @@ def getCount(lmList):
 
     return fingers
 
+
+def run(code):
+    mode = 0
+    exitCode = 0
+    if code[1] == 5 and 1 <= code[0] <= 9:
+        subprocess.run(f'xdotool key super+{str(code[0])}', shell=True)
+    elif code == [2, 2]:
+        subprocess.run(f'st &', shell=True)
+    elif code == [3, 3]:
+        subprocess.run(f'xdotool key super+q', shell=True)
+    elif code == [1,1]:
+        mode=1
+    elif code == [1, 3]:
+        exitCode = 1
+    else:
+        print("\033[38;5;160mUnknown command\033[0m")
+
+    return mode, exitCode
+
+
+def processPointHistory(image, point_history):
+    image_width, image_height = image.shape[1], image.shape[0]
+
+    temp_point_history = copy.deepcopy(point_history)
+
+    # Convert to relative coordinates
+    base_x, base_y = 0, 0
+    for index, point in enumerate(temp_point_history):
+        if index == 0:
+            base_x, base_y = point[0], point[1]
+
+        temp_point_history[index][0] = (
+            temp_point_history[index][0] - base_x
+        ) / image_width
+        temp_point_history[index][1] = (
+            temp_point_history[index][1] - base_y
+        ) / image_height
+
+    # Convert to a one-dimensional list
+    temp_point_history = [coordinate for point in temp_point_history for coordinate in point]
+    return temp_point_history
+
 countHistory = deque([0] * 5, maxlen=5)
 number = 0
 code = []
 ready = True
 zeroCount = 0
 warningGiven = False
+webcam = True
+pointHistoryLength = 16
+pointHistory = deque(maxlen=pointHistoryLength)
+fingerGestureIdHistory =[]
 
 while True:
     fingers = []
@@ -66,10 +127,9 @@ while True:
     debug_image = copy.deepcopy(image) # Unaltered copy of image
 
     detector.findHands(debug_image)
-    # detector.drawHands(image)
+    detector.drawHands(image)
     lmList = detector.getlmList(debug_image)
     handedness = detector.getHandedness()
-
 
     if len(lmList) != 0:
         if warningGiven == True:
@@ -81,30 +141,52 @@ while True:
     elif warningGiven == False:
         print("\033[38;5;160mWARNING: No hand detected\033[0m")
         warningGiven = True
+        mode=0
+        fingerGestureIdHistory = []
+        
 
     countHistory.append(count)
-    counter = Counter(countHistory)
-    number = counter.most_common(1)[0][0]
+    countCounter = Counter(countHistory)
+    number = countCounter.most_common(1)[0][0]
 
-
-    if warningGiven == True:
-        code=[]
-    elif zeroCount == 15 and len(code) != 0:
-        zeroCount+=1
-        code = []
-        print("\033[38;5;34mRESET\033[0m")
-    elif zeroCount <= 15 and number == 0:
-        zeroCount+=1
-        ready = True
-    elif len(code) == 3:
-        # run(code) create function to excecute code
-        code = []
-        print("\033[38;5;34mRESET\033[0m")
-    elif ready and number != 0:
-        zeroCount = 0
-        code.append(number)
-        print(code)
-        ready = False
+    if mode == 1:
+        # TODO: can remove if/else?
+        if len(lmList) != 0:
+            pointHistory.append(lmList[0][8][1:])
+        else:
+            pointHistory.append([0, 0])
+        processedPointHistory = processPointHistory(debug_image, pointHistory)
+        if len(processedPointHistory) == pointHistoryLength * 2:
+            tempFingureGestureId = pointHistoryClassifier(processedPointHistory)
+            fingerGestureIdHistory.append(tempFingureGestureId)
+            # print(tempFingureGestureId)
+        if len(fingerGestureIdHistory) == 20:
+            fingerGestureID = Counter(fingerGestureIdHistory).most_common(1)[0][0]
+            gesture = point_history_classifier_labels[fingerGestureID]
+            print(gesture)
+            fingerGestureIdHistory = []
+            mode = 0
+    else:
+        if warningGiven == True:
+            code=[]
+        elif zeroCount == 15 and len(code) != 0:
+            zeroCount+=1
+            code = []
+            print("\033[38;5;34mRESET\033[0m")
+        elif zeroCount <= 15 and number == 0:
+            zeroCount+=1
+            ready = True
+        elif len(code) == 2:
+            mode, exitCode = run(code)
+            if exitCode == 1:
+                break
+            code = []
+            print("\033[38;5;34mRESET\033[0m")
+        elif ready and number != 0:
+            zeroCount = 0
+            code.append(number)
+            print(code)
+            ready = False
 
     # Draw count
     cv.putText(image, f"Count: {count}", (10, 55), cv.FONT_HERSHEY_COMPLEX, 2, (0, 0, 0), 7)
