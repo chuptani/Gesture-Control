@@ -22,7 +22,6 @@ def main():
     args = getArgs()
 
     wcam, hcam = 960, 540
-    mode = 0
 
     cap = cv.VideoCapture(args.device)
     cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
