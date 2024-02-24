@@ -40,6 +40,7 @@ def main():
 
 
     countHistory = deque([0] * 5, maxlen=5)
+    mode = 0
     number = 0
     code = []
     ready = True
@@ -68,13 +69,14 @@ def main():
 
         if warningGiven == True and len(lmList) != 0:
             print("\033[38;5;34mHand detected\033[0m")
+            mode = 0
             warningGiven = False
         elif warningGiven == False and len(lmList) == 0:
             print("\033[38;5;160mWARNING: No hand detected\033[0m")
-            code = []
-            warningGiven = True
             mode=9
+            code = []
             fingerGestureIdHistory = []
+            warningGiven = True
 
         match mode:
             case 0:
@@ -97,7 +99,10 @@ def main():
                     if exitCode == 1:
                         break
                     code = []
-                    print("\033[38;5;34mRESET\033[0m")
+                    if mode == 0:
+                        print("\033[38;5;34mRESET\033[0m")
+                    elif mode == 1:
+                        print("Reading gesture...")
                 elif ready and number != 0:
                     zeroCount = 0
                     code.append(number)
