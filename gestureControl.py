@@ -10,31 +10,137 @@ import HandTrackingModule as htm
 from collections import deque, Counter
 from model import PointHistoryClassifier
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--device", type=int, default=0)
-parser.add_argument("--train", action="store_true")
-args = parser.parse_args()
+def getArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--device", type=int, default=0)
+    parser.add_argument("--train", action="store_true")
+    return parser.parse_args()
 
-wcam, hcam = 960, 540
-tipIds = [8, 12, 16, 20]
-mode = 0
 
-cap = cv.VideoCapture(args.device)
-cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
-cap.set(3, wcam)
-cap.set(4, hcam)
+def main():
 
-detector = htm.handDetector(maxHands=1, detectionCon=0.7)
-cvFpsCalc = htm.CvFpsCalc(buffer_len=10)
+    args = getArgs()
 
-pointHistoryClassifier = PointHistoryClassifier()
+    wcam, hcam = 960, 540
+    mode = 0
 
-with open("model/point_history_classifier/point_history_classifier_label.csv",encoding="utf-8-sig") as f:
-    point_history_classifier_labels = csv.reader(f)
-    point_history_classifier_labels = [row[0] for row in point_history_classifier_labels]
+    cap = cv.VideoCapture(args.device)
+    cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
+    cap.set(3, wcam)
+    cap.set(4, hcam)
+
+    detector = htm.handDetector(maxHands=1, detectionCon=0.7)
+    cvFpsCalc = htm.CvFpsCalc(buffer_len=10)
+
+    pointHistoryClassifier = PointHistoryClassifier()
+
+    with open("model/point_history_classifier/point_history_classifier_label.csv",encoding="utf-8-sig") as f:
+        point_history_classifier_labels = csv.reader(f)
+        point_history_classifier_labels = [row[0] for row in point_history_classifier_labels]
+
+
+    countHistory = deque([0] * 5, maxlen=5)
+    number = 0
+    code = []
+    ready = True
+    zeroCount = 0
+    warningGiven = False
+    webcam = True
+    pointHistoryLength = 16
+    pointHistory = deque(maxlen=pointHistoryLength)
+    fingerGestureIdHistory =[]
+
+    while True:
+        fingers = []
+        count = 0
+        success, image = cap.read()
+        if not success :
+            break
+
+        if webcam :
+            image = cv.flip(image, 1)
+        debug_image = copy.deepcopy(image) # Unaltered copy of image
+
+        detector.findHands(debug_image)
+        detector.drawHands(image)
+        lmList = detector.getlmList(debug_image)
+        handedness = detector.getHandedness()
+
+        if warningGiven == True and len(lmList) != 0:
+            print("\033[38;5;34mHand detected\033[0m")
+            warningGiven = False
+        elif warningGiven == False and len(lmList) == 0:
+            print("\033[38;5;160mWARNING: No hand detected\033[0m")
+            code = []
+            warningGiven = True
+            mode=9
+            fingerGestureIdHistory = []
+
+        match mode:
+            case 0:
+                for index, _  in enumerate(handedness):
+                    fingers.append(getCount(lmList[index]))
+                    count+=fingers[index].count(1)
+                countHistory.append(count)
+                countCounter = Counter(countHistory)
+                number = countCounter.most_common(1)[0][0]
+
+                if zeroCount == 15 and len(code) != 0:
+                    zeroCount+=1
+                    code = []
+                    print("\033[38;5;34mRESET\033[0m")
+                elif zeroCount <= 15 and number == 0:
+                    zeroCount+=1
+                    ready = True
+                elif len(code) == 2:
+                    mode, exitCode = run(code)
+                    if exitCode == 1:
+                        break
+                    code = []
+                    print("\033[38;5;34mRESET\033[0m")
+                elif ready and number != 0:
+                    zeroCount = 0
+                    code.append(number)
+                    print(code)
+                    ready = False
+            case 1:
+                pointHistory.append(lmList[0][8][1:])
+                processedPointHistory = processPointHistory(debug_image, pointHistory)
+                if len(processedPointHistory) == pointHistoryLength * 2:
+                    tempFingureGestureId = pointHistoryClassifier(processedPointHistory)
+                    fingerGestureIdHistory.append(tempFingureGestureId)
+                    # print(tempFingureGestureId)
+                if len(fingerGestureIdHistory) == 40:
+                    fingerGestureID = Counter(fingerGestureIdHistory).most_common(1)[0][0]
+                    gesture = point_history_classifier_labels[fingerGestureID]
+                    print(gesture)
+                    fingerGestureIdHistory = []
+                    mode = 0
+                    print("\033[38;5;34mRESET\033[0m")
+
+        # Draw count
+        cv.putText(image, f"Count: {count}", (10, 55), cv.FONT_HERSHEY_COMPLEX, 2, (0, 0, 0), 7)
+        cv.putText(image, f"Count: {count}", (10, 55), cv.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+
+        # Draw fps
+        fps = cvFpsCalc.get()
+        cv.putText(image, f"fps: {int(fps):02}", (835, 525), cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
+        cv.putText(image, f"fps: {int(fps):02}", (835, 525), cv.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 1)
+
+        if not webcam :
+            image = cv.flip(image, 1)
+        cv.imshow("image", image)
+        key = cv.waitKey(1)
+        if key == 27:  # ESC
+            break
+
+    cap.release()
+    cv.destroyAllWindows()
+
 
 def getCount(lmList):
     fingers = []
+    tipIds = [8, 12, 16, 20]
     pinkyKnuckle = lmList[17]
     thumbTip = lmList[4]
     thumbJoint = lmList[3]
@@ -104,105 +210,6 @@ def processPointHistory(image, point_history):
     temp_point_history = [coordinate for point in temp_point_history for coordinate in point]
     return temp_point_history
 
-countHistory = deque([0] * 5, maxlen=5)
-number = 0
-code = []
-ready = True
-zeroCount = 0
-warningGiven = False
-webcam = True
-pointHistoryLength = 16
-pointHistory = deque(maxlen=pointHistoryLength)
-fingerGestureIdHistory =[]
 
-while True:
-    fingers = []
-    count = 0
-    success, image = cap.read()
-    if not success :
-        break
-
-    if webcam :
-        image = cv.flip(image, 1)
-    debug_image = copy.deepcopy(image) # Unaltered copy of image
-
-    detector.findHands(debug_image)
-    detector.drawHands(image)
-    lmList = detector.getlmList(debug_image)
-    handedness = detector.getHandedness()
-
-    if len(lmList) != 0:
-        if warningGiven == True:
-            print("\033[38;5;34mHand detected\033[0m")
-            warningGiven = False
-        for index, _  in enumerate(handedness):
-            fingers.append(getCount(lmList[index]))
-            count+=fingers[index].count(1)
-    elif warningGiven == False:
-        print("\033[38;5;160mWARNING: No hand detected\033[0m")
-        warningGiven = True
-        mode=0
-        fingerGestureIdHistory = []
-        
-
-    countHistory.append(count)
-    countCounter = Counter(countHistory)
-    number = countCounter.most_common(1)[0][0]
-
-    if mode == 1:
-        # TODO: can remove if/else?
-        if len(lmList) != 0:
-            pointHistory.append(lmList[0][8][1:])
-        else:
-            pointHistory.append([0, 0])
-        processedPointHistory = processPointHistory(debug_image, pointHistory)
-        if len(processedPointHistory) == pointHistoryLength * 2:
-            tempFingureGestureId = pointHistoryClassifier(processedPointHistory)
-            fingerGestureIdHistory.append(tempFingureGestureId)
-            # print(tempFingureGestureId)
-        if len(fingerGestureIdHistory) == 20:
-            fingerGestureID = Counter(fingerGestureIdHistory).most_common(1)[0][0]
-            gesture = point_history_classifier_labels[fingerGestureID]
-            print(gesture)
-            fingerGestureIdHistory = []
-            mode = 0
-    else:
-        if warningGiven == True:
-            code=[]
-        elif zeroCount == 15 and len(code) != 0:
-            zeroCount+=1
-            code = []
-            print("\033[38;5;34mRESET\033[0m")
-        elif zeroCount <= 15 and number == 0:
-            zeroCount+=1
-            ready = True
-        elif len(code) == 2:
-            mode, exitCode = run(code)
-            if exitCode == 1:
-                break
-            code = []
-            print("\033[38;5;34mRESET\033[0m")
-        elif ready and number != 0:
-            zeroCount = 0
-            code.append(number)
-            print(code)
-            ready = False
-
-    # Draw count
-    cv.putText(image, f"Count: {count}", (10, 55), cv.FONT_HERSHEY_COMPLEX, 2, (0, 0, 0), 7)
-    cv.putText(image, f"Count: {count}", (10, 55), cv.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
-
-    # Draw fps
-    fps = cvFpsCalc.get()
-    cv.putText(image, f"fps: {int(fps):02}", (835, 525), cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
-    cv.putText(image, f"fps: {int(fps):02}", (835, 525), cv.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 1)
-
-    if not webcam :
-        image = cv.flip(image, 1)
-    cv.imshow("image", image)
-    key = cv.waitKey(1)
-    if key == 27:  # ESC
-        break
-
-cap.release()
-cv.destroyAllWindows()
+if __name__ == "__main__":
+    main()
