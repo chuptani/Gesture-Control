@@ -9,7 +9,7 @@ cap.set(4, 540)
 
 pTime = 0
 
-# detector = htm.handDetector()
+detector = htm.handDetector()
 cvFpsCalc = htm.CvFpsCalc(buffer_len=10)
 
 while True:
@@ -21,7 +21,9 @@ while True:
     image = cv.flip(image, 1)
     debug_image = copy.deepcopy(image)
 
-    # detector.findHands(debug_image)
+    detector.findHands(debug_image)
+    lmList = detector.getlmList(debug_image)
+    print(lmList)
     # detector.drawHands(image)
 
     fps = cvFpsCalc.get()
