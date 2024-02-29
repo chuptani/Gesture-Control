@@ -62,15 +62,20 @@ class handDetector:
         return handedness
 
 
-    def getlmList(self, image):
+    def getlmList(self, image, raw=False):
+        height, width, _ = image.shape
         lmList = []
         if self.results.multi_hand_landmarks:
             for hand in self.results.multi_hand_landmarks:
                 landmarkList = []
                 for id, lm in enumerate(hand.landmark):
-                    height, width, _ = image.shape
-                    lmx, lmy = int(lm.x * width), int(lm.y * height)
-                    landmarkList.append([id, lmx, lmy])
+                    # print(id)
+                    # print(lm)
+                    if raw:
+                        landmarkList.append([id, lm.x, lm.y, lm.z])
+                    else:
+                        lmx, lmy, lmz = int(lm.x * width), int(lm.y * height), int(lm.z * 1000)
+                        landmarkList.append([id, lmx, lmy, lmz])
                 lmList.append(landmarkList)
 
         return lmList
@@ -106,8 +111,10 @@ class CvFpsCalc(object):
 
 
 def main():
-    cap = cv.VideoCapture(0)
-    cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
+    device = 2
+    cap = cv.VideoCapture(device)
+    if device == 0:
+        cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
     detector = handDetector()
     cvFpsCalc = CvFpsCalc(buffer_len=10)
 
@@ -119,13 +126,13 @@ def main():
         detector.findHands(debug_image)
         detector.drawHands(image)
         lmList = detector.getlmList(debug_image)
-        gesture = detector.getGesture(debug_image)
+        # gesture = detector.getGesture(debug_image)
 
         if len(lmList) != 0:
             for lms in lmList:
-                print(lmList[lms])
+                print(lms[4])
 
-        print(gesture)
+        # print(gesture)
 
         fps = cvFpsCalc.get()
         cv.putText(image, str(int(fps)), (5, 30), cv.FONT_HERSHEY_COMPLEX, 1, (255, 0, 255), 2)
