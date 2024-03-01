@@ -30,7 +30,7 @@ def main():
     cap.set(3, wcam)
     cap.set(4, hcam)
 
-    detector = htm.handDetector(maxHands=1, detectionCon=0.5)
+    detector = htm.handDetector(maxHands=1, detectionCon=0.7)
     cvFpsCalc = htm.CvFpsCalc(buffer_len=10)
 
     pointHistoryClassifier = PointHistoryClassifier()
@@ -38,6 +38,14 @@ def main():
     with open("model/point_history_classifier/point_history_classifier_label.csv",encoding="utf-8-sig") as f:
         point_history_classifier_labels = csv.reader(f)
         point_history_classifier_labels = [row[0] for row in point_history_classifier_labels]
+    with open(
+        "model/point_history_classifier/point_history_classifier_label.csv",
+        encoding="utf-8-sig",
+    ) as f:
+        point_history_classifier_labels = csv.reader(f)
+        point_history_classifier_labels = [
+            row[0] for row in point_history_classifier_labels
+        ]
 
 
     countHistory = deque([0] * 5, maxlen=5)
@@ -52,19 +60,18 @@ def main():
     fingerGestureIdHistory =[]
     startMode = 2 if args.train else 0
     mode = startMode
-    print(startMode)
+    label = -1
 
     while True:
         fingers = []
         count = 0
-        label = -1
 
         key = cv.waitKey(1)
         if key == 27:  # ESC
             break
         elif 48 <= key <= 57:  # 0 ~ 9
-            label = key - 48
-        elif key == 113: # q
+                label = key - 48
+        elif key == 96: # ` (backtick)
             label = -1
 
         success, image = cap.read()
@@ -80,20 +87,20 @@ def main():
         lmList = detector.getlmList(debug_image)
         handedness = detector.getHandedness()
 
-        if warningGiven == True and len(lmList) != 0:
-            print("\033[38;5;34mHand detected\033[0m")
-            mode = startMode
-            warningGiven = False
-        elif warningGiven == False and len(lmList) == 0:
-            print("\033[38;5;160mWARNING: No hand detected\033[0m")
-            mode=9
-            code = []
-            fingerGestureIdHistory = []
-            warningGiven = True
+        if mode in [0, 9]:
+            if warningGiven == True and len(lmList) != 0:
+                print("\033[38;5;34mHand detected\033[0m")
+                mode = startMode
+                warningGiven = False
+            elif warningGiven == False and len(lmList) == 0:
+                print("\033[38;5;160mWARNING: No hand detected\033[0m")
+                mode=9
+                code = []
+                warningGiven = True
 
         match mode:
             case 0:
-                for index, _  in enumerate(handedness):
+                for index, _ in enumerate(handedness):
                     fingers.append(getCount(lmList[index]))
                     count+=fingers[index].count(1)
                 countHistory.append(count)
@@ -122,7 +129,8 @@ def main():
                     print(code)
                     ready = False
             case 1:
-                pointHistory.append(lmList[0][8][1:3])
+                if lmList:
+                    pointHistory.append(lmList[0][8][1:3])
                 processedPointHistory = processPointHistory(debug_image, pointHistory)
                 if len(processedPointHistory) == pointHistoryLength * 2:
                     tempFingureGestureId = pointHistoryClassifier(processedPointHistory)
@@ -144,7 +152,15 @@ def main():
                         writer = csv.writer(file)
                         if label != -1:
                             writer.writerow([label, *processedPointHistory])
+                            cv.putText(image, f"training label {label}", (10, 525),
+                                       cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
+                            cv.putText(image, f"training label {label}", (10, 525),
+                                       cv.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 1)
 
+                    # print(point_history_classifier_labels[pointHistoryClassifier(processedPointHistory)])
+                # print(processedPointHistory)
+
+        # Draw training mode
         if startMode == 2:
             cv.putText(image, f"Training Mode", (710, 30), cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
             cv.putText(image, f"Training Mode", (710, 30), cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 1)
